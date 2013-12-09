@@ -1,0 +1,125 @@
+{% block body %}
+
+<html>
+	<head>
+
+		<style type="text/css">
+		div.box {
+			margin: auto;
+			font-family: "Courier New";
+			color: #FFFFFF;
+			padding: 10px;
+		}
+		</style>
+
+	</head>
+	<body>
+	</body>
+</html>
+
+{% endblock %}
+
+{% block javascript %}
+
+<script type="text/javascript" src="/static/js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="/static/js/d3.v3.min.js"></script>
+
+<script type="text/javascript">
+
+// INCLUDE AND CONFIGURE KEEN.IO
+var Keen=Keen||{configure:function(e){this._cf=e},addEvent:function(e,t,n,i){this._eq=this._eq||[],this._eq.push([e,t,n,i])},setGlobalProperties:function(e){this._gp=e},onChartsReady:function(e){this._ocrq=this._ocrq||[],this._ocrq.push(e)}};(function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src=("https:"==document.location.protocol?"https://":"http://")+"dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)})();
+Keen.configure({
+  projectId: "52a3abb373f4bb2cd400000f",
+  writeKey: "eff3c2a77ef81b6ff3d9cea02bdf0f2c4119b0fed939d777b3a3078942f1180cbd019917bd85c108792bad5cb011a0face69e8c5558fa5a7a50f237d80b499538dbac2fbb3305a99707f2426cd3655c86f4526f146055fccd986f8448a86f0299bdf9f0d2597523052462acf41113441",
+  readKey: "8960683a0a2327fbb88ce5894392bb7a28cf0d002afc7b1420b6f0450e26b1e28d7bbe5ea32b0fb2e52beb49d2dd97b198a0fad7d39940394711e547b76e1251deb65d1b350e7d66f4ca7b582875c311cca12990ec54aebaccf8daea90de0718ac7ec5034f71628a4f58195d0022cfb8"
+	});
+	// END INCLUDE AND CONFIGURE KEEN.IO
+
+// MAIN JS
+$(document).ready(function() {
+
+	// GET ACTIONS DATA FROM KEEN.IO
+	Keen.onChartsReady(function() {
+
+		min_width = 50;
+		min_height = 50; 
+
+		var metric = new Keen.Metric("actions", {
+			analysisType: "count",
+			groupBy: "type"
+		});
+  		resp = metric.getResponse(function(response){
+  			for (var i = response.result.length - 1; i >= 0; i--) {
+	  			var datum = response.result[i];
+	    		// DRAW DIV(S) USING D3
+				d3.select("body").select("div")
+					.data([datum])
+					.enter()
+					.append("div")
+					.attr("class", "box")
+					.attr("id", function(d) {
+						return d.type;
+					})
+					.style("width", function(d){
+						return parseInt(d.result) * (min_width/10);
+					})
+					.style("height", function(d){
+						return parseInt(d.result) * (min_height/10);
+					})
+					.style("background-color", getRandomColor())
+					.text(function(d) {
+						return d.type;
+					})
+					.on("click", function(d) {
+						engage(d.type);
+					})
+					.on("mouseover", function(){
+						d3.select(this).style("cursor", "pointer");
+						d3.select(this).style("opacity", .5);
+					})
+					.on("mouseout", function(){;
+						d3.select(this).style("opacity", 1);
+					});
+				// END DRAW DIV(S) USING D3
+  			};
+		}); 
+	});
+	// END GET ACTIONS DATA FROM KEEN.IO
+});
+// END MAIN JS
+
+// FUNCTIONS
+
+// ENGAGE
+var engage = function (type) {
+    var click = {
+        clickedOn: new Date(),
+        type: type
+    };
+    Keen.addEvent("actions", click);
+};  
+var walk = function () {
+    var click = {
+        clickedOn: new Date(),
+        type: "walk"
+    };
+    Keen.addEvent("actions", click);
+};
+// END ENGAGE
+
+// GET RANDOM COLOR
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 15)];
+    }
+    return color;
+}
+// END GET RANDOM COLOR
+    
+</script>
+
+
+
+{% endblock %}
