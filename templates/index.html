@@ -9,11 +9,13 @@
 			font-family: "Courier New";
 			color: #FFFFFF;
 			padding: 10px;
+			float: left;
 		}
 		</style>
 
 	</head>
 	<body>
+		<div id="c"><!-- <button onclick="engage('car')">car</button> --></div>
 	</body>
 </html>
 
@@ -36,23 +38,34 @@ Keen.configure({
 	// END INCLUDE AND CONFIGURE KEEN.IO
 
 // MAIN JS
+
+var w = $(window).width(); 
+
+var svg = d3.select("#c").append("div")
+	.attr("width", w)
+	.attr("height", w)
+	.append("g");
+
 $(document).ready(function() {
 
 	// GET ACTIONS DATA FROM KEEN.IO
 	Keen.onChartsReady(function() {
-
-		min_width = 50;
-		min_height = 50; 
 
 		var metric = new Keen.Metric("actions", {
 			analysisType: "count",
 			groupBy: "type"
 		});
   		resp = metric.getResponse(function(response){
+  			var sum = 0; 
+  			for (var i = response.result.length - 1; i >=0; i--){
+  				var x = response.result[i];
+  				sum += parseInt(x.result); 
+  			}
+  			console.log(sum);
   			for (var i = response.result.length - 1; i >= 0; i--) {
 	  			var datum = response.result[i];
 	    		// DRAW DIV(S) USING D3
-				d3.select("body").select("div")
+				svg.selectAll(".action")
 					.data([datum])
 					.enter()
 					.append("div")
@@ -61,10 +74,10 @@ $(document).ready(function() {
 						return d.type;
 					})
 					.style("width", function(d){
-						return parseInt(d.result) * (min_width/10);
+						return parseInt(d.result)/sum * w;
 					})
 					.style("height", function(d){
-						return parseInt(d.result) * (min_height/10);
+						return parseInt(d.result)/sum * w;
 					})
 					.style("background-color", getRandomColor())
 					.text(function(d) {
